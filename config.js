@@ -2,7 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const CONFIG = {
   SUPABASE_URL: 'https://hfmtwopfoyjxgdlxufsv.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR_ANON_KEY',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmbXR3b3Bmb3lqeGdkbHh1ZnN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMDA3MzcsImV4cCI6MjA5NjU3NjczN30.UothZRsSAeHPu_rxSpEsbBtuWnTTNjuUWqZzhZhvPrM',
 
   STORAGE_BUCKET: 'review-images',
 
