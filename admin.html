@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Omega Attire</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a class="logo" href="index.html">
+      <span class="logo-omega">Ω</span>
+      <span class="logo-text">OMEGA ATTIRE</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">← Back to Site</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="dark-toggle" id="darkToggle">☽</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="loginScreen" class="admin-login-page">
+  <div class="admin-login-card">
+    <div class="logo" style="margin-bottom:6px">
+      <span class="logo-omega">Ω</span>
+      <span class="logo-text">OMEGA ATTIRE</span>
+    </div>
+    <h2>Admin Login</h2>
+    <p>Sign in with your Supabase Auth email &amp; password.</p>
+    <form class="admin-login-form" id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="adminEmail">Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@omegaattire.in" required />
+      </div>
+      <div class="form-group">
+        <label for="adminPw">Password</label>
+        <input type="password" id="adminPw" placeholder="Your password" required />
+      </div>
+      <div class="form-error-msg" id="loginErr" style="display:none"></div>
+      <button type="submit" class="btn btn-primary btn-full" id="loginBtn">Login</button>
+    </form>
+    <p style="font-size:.78rem;color:var(--g4);margin-top:20px;text-align:center">
+      Create admin user in Supabase → Authentication → Users
+    </p>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard" style="display:none">
+  <div class="admin-page">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-brand">
+        <div class="logo"><span class="logo-omega">Ω</span><span class="logo-text" style="color:rgba(255,255,255,.9)">ADMIN</span></div>
+      </div>
+      <nav class="admin-nav">
+        <a href="#" class="active" data-tab="pending"  onclick="switchTab('pending',this)">⏳ Pending</a>
+        <a href="#" data-tab="approved" onclick="switchTab('approved',this)">✅ Approved</a>
+        <a href="#" data-tab="rejected" onclick="switchTab('rejected',this)">❌ Rejected</a>
+        <a href="#" data-tab="analytics" onclick="switchTab('analytics',this)">📊 Analytics</a>
+        <a href="#" class="nav-logout" onclick="doLogout()">🚪 Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1 id="dashTitle">Pending Reviews</h1>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:.82rem;color:var(--g3)" id="adminUserLabel"></span>
+          <button class="btn btn-ghost btn-sm" onclick="loadCurrentTab()">↺ Refresh</button>
+          <button class="btn btn-outline btn-sm" onclick="doLogout()">Logout</button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="admin-stats-row" id="adminStatsRow">
+        <div class="admin-stat"><div class="admin-stat-num orange" id="adPending">—</div><div class="admin-stat-lbl">Pending</div></div>
+        <div class="admin-stat"><div class="admin-stat-num green"  id="adApproved">—</div><div class="admin-stat-lbl">Approved</div></div>
+        <div class="admin-stat"><div class="admin-stat-num red"    id="adRejected">—</div><div class="admin-stat-lbl">Rejected</div></div>
+        <div class="admin-stat"><div class="admin-stat-num blue"   id="adAvgRating">—</div><div class="admin-stat-lbl">Avg Rating</div></div>
+      </div>
+
+      <!-- Table -->
+      <div class="admin-card" id="tableCard">
+        <div class="admin-card-header">
+          <h3 id="tableTitle">Pending Reviews</h3>
+          <input type="text" id="tableSearch" placeholder="Search…"
+            style="padding:8px 12px;border:2px solid var(--g5);border-radius:6px;font-size:.84rem;background:var(--white);color:var(--black);outline:none;max-width:220px"
+            oninput="filterTable(this.value)" />
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Rating</th>
+                <th>Review</th>
+                <th>Product</th>
+                <th>Date</th>
+                <th>Photos</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminTbody">
+              <tr><td colspan="8" style="text-align:center;padding:40px">
+                <div class="spinner" style="margin:0 auto"></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Analytics panel -->
+      <div id="analyticsPanel" style="display:none">
+        <div class="admin-card" style="padding:32px">
+          <h3 style="margin-bottom:24px;font-size:1rem;font-weight:700">📊 Review Analytics</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px" id="analyticsGrid">
+            <div class="spinner-wrap"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="supabase-client.js"></script>
+<script src="ui.js"></script>
+<script>
+/* ── ADMIN CLIENT (uses service role key for full access) ── */
+let adminClient;
+let currentTab = 'pending';
+let allRows    = [];
+
+function initAdminClient() {
+  if (
+    CONFIG.SUPABASE_URL.includes('PASTE_YOUR') ||
+    CONFIG.SUPABASE_SERVICE_KEY.includes('PASTE_YOUR')
+  ) {
+    return false;
+  }
+  // Admin uses the regular client but authenticated session gives full RLS access
+  adminClient = supabase; // supabase is the anon client; after login, session elevates it
+  return true;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const ready = initSupabase();
+  if (!ready) {
+    document.getElementById('loginErr').textContent =
+      '⚠ Configure config.js before using admin panel.';
+    document.getElementById('loginErr').style.display = 'block';
+    return;
+  }
+
+  // Check for existing session
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    showDashboard(session.user);
+  }
+
+  // Login form
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginErr');
+    btn.disabled = true; btn.textContent = 'Signing in…'; err.style.display = 'none';
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email:    document.getElementById('adminEmail').value.trim(),
+      password: document.getElementById('adminPw').value,
+    });
+
+    btn.disabled = false; btn.textContent = 'Login';
+
+    if (error) {
+      err.textContent = '❌ ' + error.message;
+      err.style.display = 'block';
+    } else {
+      showDashboard(data.user);
+    }
+  });
+});
+
+function showDashboard(user) {
+  document.getElementById('loginScreen').style.display  = 'none';
+  document.getElementById('dashboard').style.display    = 'block';
+  document.getElementById('adminUserLabel').textContent = `👤 ${user.email}`;
+  loadAdminStats();
+  loadCurrentTab();
+}
+
+async function doLogout() {
+  await supabase.auth.signOut();
+  document.getElementById('dashboard').style.display   = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminPw').value = '';
+}
+
+// ── STATS ─────────────────────────────────────────────────────
+async function loadAdminStats() {
+  const { data } = await supabase.from('admin_stats').select('*').single();
+  if (!data) return;
+  document.getElementById('adPending').textContent  = data.pending  ?? '—';
+  document.getElementById('adApproved').textContent = data.approved ?? '—';
+  document.getElementById('adRejected').textContent = data.rejected ?? '—';
+  document.getElementById('adAvgRating').textContent = data.avg_rating ? data.avg_rating + '★' : '—';
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.admin-nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+
+  const titles = { pending:'Pending Reviews', approved:'Approved Reviews', rejected:'Rejected Reviews', analytics:'Analytics' };
+  document.getElementById('dashTitle').textContent  = titles[tab];
+  document.getElementById('tableTitle').textContent = titles[tab];
+
+  const isAnalytics = tab === 'analytics';
+  document.getElementById('tableCard').style.display      = isAnalytics ? 'none' : 'block';
+  document.getElementById('analyticsPanel').style.display = isAnalytics ? 'block' : 'none';
+
+  loadCurrentTab();
+}
+
+function loadCurrentTab() {
+  if (currentTab === 'analytics') loadAnalytics();
+  else loadReviews(currentTab);
+}
+
+// ── LOAD REVIEWS ──────────────────────────────────────────────
+async function loadReviews(status) {
+  const tbody = document.getElementById('adminTbody');
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>`;
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('status', status)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--red)">Error: ${error.message}</td></tr>`;
+    return;
+  }
+
+  allRows = data || [];
+  renderTable(allRows);
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('adminTbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--g4)">No reviews in this category.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const date   = new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const photos = (r.images || []).length;
+    const stars  = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+
+    return `<tr id="row-${r.id}">
+      <td>
+        <strong>${escapeHtml(r.name)}</strong><br>
+        <small style="color:var(--g4)">📍 ${escapeHtml(r.city)}</small>
+      </td>
+      <td style="color:#f5a623;font-size:.85rem;white-space:nowrap">${stars}</td>
+      <td style="max-width:240px;font-size:.82rem;color:var(--g2)">
+        ${escapeHtml(r.review_text.slice(0, 100))}${r.review_text.length > 100 ? '…' : ''}
+      </td>
+      <td style="font-size:.8rem">${escapeHtml(r.product)}</td>
+      <td style="font-size:.78rem;white-space:nowrap">${date}</td>
+      <td style="font-size:.8rem;text-align:center">
+        ${photos ? `<span style="cursor:pointer" onclick="viewPhotos(${r.id})"
+          title="Click to view">🖼 ${photos}</span>` : '—'}
+      </td>
+      <td><span class="status-pill sp-${r.status}">${r.status}</span></td>
+      <td>
+        <div class="act-btns">
+          ${r.status !== 'approved' ? `<button class="act-btn ab-approve" onclick="setStatus(${r.id},'approved')">✓ Approve</button>` : ''}
+          ${r.status !== 'rejected' ? `<button class="act-btn ab-reject"  onclick="setStatus(${r.id},'rejected')">✗ Reject</button>` : ''}
+          <button class="act-btn ab-delete" onclick="deleteReview(${r.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable(q) {
+  if (!q) { renderTable(allRows); return; }
+  const lq = q.toLowerCase();
+  renderTable(allRows.filter(r =>
+    r.name.toLowerCase().includes(lq) ||
+    r.city.toLowerCase().includes(lq) ||
+    r.review_text.toLowerCase().includes(lq) ||
+    r.product.toLowerCase().includes(lq)
+  ));
+}
+
+// ── APPROVE / REJECT ──────────────────────────────────────────
+async function setStatus(id, status) {
+  const { error } = await supabase
+    .from('reviews')
+    .update({ status })
+    .eq('id', id);
+
+  if (error) { showToast('❌ Error: ' + error.message); return; }
+
+  showToast(status === 'approved' ? '✅ Review approved!' : '❌ Review rejected.');
+  document.getElementById(`row-${id}`)?.remove();
+  allRows = allRows.filter(r => r.id !== id);
+  loadAdminStats();
+}
+
+// ── DELETE ────────────────────────────────────────────────────
+async function deleteReview(id) {
+  if (!confirm('Permanently delete this review? This cannot be undone.')) return;
+
+  // Get images to delete from storage
+  const row = allRows.find(r => r.id === id);
+  if (row?.images?.length) {
+    const paths = row.images.map(url => {
+      const parts = url.split('/review-images/');
+      return parts[1] ? 'reviews/' + parts[1].split('?')[0] : null;
+    }).filter(Boolean);
+    if (paths.length) {
+      await supabase.storage.from(CONFIG.STORAGE_BUCKET).remove(paths);
+    }
+  }
+
+  const { error } = await supabase.from('reviews').delete().eq('id', id);
+  if (error) { showToast('❌ Delete failed: ' + error.message); return; }
+
+  showToast('🗑 Review deleted.');
+  document.getElementById(`row-${id}`)?.remove();
+  allRows = allRows.filter(r => r.id !== id);
+  loadAdminStats();
+}
+
+// ── VIEW PHOTOS ───────────────────────────────────────────────
+function viewPhotos(id) {
+  const row = allRows.find(r => r.id === id);
+  if (!row?.images?.length) return;
+  openLightbox(row.images[0]);
+}
+
+// ── ANALYTICS ─────────────────────────────────────────────────
+async function loadAnalytics() {
+  const grid = document.getElementById('analyticsGrid');
+  grid.innerHTML = `<div class="spinner-wrap"><div class="spinner"></div></div>`;
+
+  const { data: stats } = await supabase.from('admin_stats').select('*').single();
+  const { data: pubStats } = await supabase.from('review_stats').select('*').single();
+
+  if (!stats) { grid.innerHTML = '<p>Failed to load analytics.</p>'; return; }
+
+  const total = +stats.total || 1;
+  const items = [
+    { label: 'Total Reviews',    val: stats.total    ?? 0, color: 'red'    },
+    { label: 'Pending Approval', val: stats.pending  ?? 0, color: 'orange' },
+    { label: 'Approved',         val: stats.approved ?? 0, color: 'green'  },
+    { label: 'Rejected',         val: stats.rejected ?? 0, color: 'blue'   },
+    { label: 'Average Rating',   val: (stats.avg_rating ?? 0) + '★', color: 'red' },
+    { label: 'Approval Rate',    val: Math.round((+stats.approved / total) * 100) + '%', color: 'green' },
+    { label: '5-Star Reviews',   val: pubStats ? pubStats.five_star  ?? 0 : '—', color: 'red'   },
+    { label: 'Satisfaction',     val: pubStats ? (pubStats.satisfaction_pct ?? 0) + '%' : '—', color: 'green' },
+  ];
+
+  grid.innerHTML = items.map(item => `
+    <div class="admin-stat">
+      <div class="admin-stat-num ${item.color}">${item.val}</div>
+      <div class="admin-stat-lbl">${item.label}</div>
+    </div>`).join('');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+function showToast(msg) {
+  let t = document.getElementById('oa-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'oa-toast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
